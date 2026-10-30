@@ -22,7 +22,6 @@
     const a = document.activeElement, mn = document.getElementById('main');
     if (a && a !== document.body && mn.contains(a) && a.blur) a.blur();
     const S = P.S, v = S.ui.view && P.views[S.ui.view] ? S.ui.view : 'home', y = window.scrollY;
-    P.checkAch();
     const view = P.views[v];
     document.getElementById('main').innerHTML = `<div class="view" data-view="${v}">${view.render()}</div>`;
     if (view.after) view.after();
@@ -38,8 +37,9 @@
       <div class="brand"><img src="assets/logo/logo-mark.svg" alt="" width="40" height="40"><div><b>PROJUKTI</b><small>Academic Mission 2026</small></div></div>
       <nav aria-label="Main">${NAV.map(link).join('')}</nav>
       <div class="side-foot glass">
-        <div class="me"><img src="assets/avatars/av${p.avatar || 1}.svg" alt="" width="38" height="38"><div><b>${P.esc(p.name || 'Student')}</b><small>Level ${lv.lv} · ${P.icon('flame', 12)} ${st.cur}</small></div></div>
+        <div class="me"><img src="${P.avatar()}" alt="" width="38" height="38" class="photo-s"><div><b>${P.esc(p.name || 'Student')}</b><small>Level ${lv.lv} · ${P.icon('flame', 12)} ${st.cur}</small></div></div>
         ${P.bar(lv.pct)}<small class="muted">${lv.cur} / ${lv.need} XP</small>
+        ${P.cloudChip ? P.cloudChip() : ''}
       </div>`;
     const more = !BOTTOM.includes(v);
     document.getElementById('bottom').innerHTML = BOTTOM.map(id => { const n = NAV.find(x => x[0] === id); return `<button class="bn ${id === v ? 'on' : ''}" data-a="go" data-v="${id}" aria-label="${n[1]}">${P.icon(n[2], 22)}<span>${n[1].split(' ')[0]}</span></button>`; }).join('') +
@@ -119,6 +119,6 @@
   P.load(); P.applyTheme(); P.ensureRecurring();
   document.getElementById('app').innerHTML = '<aside id="side" class="glass"></aside><main id="main" tabindex="-1"></main><nav id="bottom" class="glass" aria-label="Quick"></nav>';
   P.render(true);
-  if (!P.S.profile.onboarded) setTimeout(onboard, 250);
+  P.cloudBoot(() => { if (!P.S.profile.onboarded) setTimeout(onboard, 200); });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 })();

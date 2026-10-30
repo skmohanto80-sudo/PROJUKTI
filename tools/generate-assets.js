@@ -1,4 +1,4 @@
-/* Generates all SVG assets (logos, badges, avatars, backgrounds, illustrations).
+/* Generates all SVG assets (logos, avatars, backgrounds, illustrations).
    Run:  node tools/generate-assets.js        (seeded, so output is reproducible) */
 const fs = require('fs'), path = require('path');
 const P = require('../js/assets.js');
@@ -19,10 +19,6 @@ out('logo/favicon.svg', `<svg ${NS} viewBox="0 0 128 128">${mark('f')}</svg>`);
 out('logo/logo-mono.svg', `<svg ${NS} viewBox="0 0 128 128" width="256" height="256" style="background:#0a1228">${mark('o', true)}</svg>`);
 out('logo/logo-full.svg', `<svg ${NS} viewBox="0 0 520 128" width="520" height="128"><g>${mark('a')}</g><text x="148" y="70" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="54" font-weight="800" letter-spacing="6" fill="#e6f1ff">PROJUKTI</text><text x="150" y="102" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="17" letter-spacing="5" fill="#22d3ee">STUDY COMMAND CENTER</text></svg>`);
 out('logo/logo-stacked.svg', `<svg ${NS} viewBox="0 0 320 250" width="320" height="250"><g transform="translate(96 0)">${mark('s')}</g><text x="160" y="190" text-anchor="middle" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="40" font-weight="800" letter-spacing="5" fill="#e6f1ff">PROJUKTI</text><text x="160" y="220" text-anchor="middle" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="13" letter-spacing="4" fill="#22d3ee">ACADEMIC MISSION 2026</text></svg>`);
-
-/* ---------- badges ---------- */
-P.ACH.forEach(a => { out(`badges/${a.id}.svg`, P.badgeSVG(a, false, 128)); });
-out('badges/_locked.svg', P.badgeSVG(P.ACH[0], true, 128));
 
 /* ---------- avatars (seeded random geometric) ---------- */
 const PAL = [['#22d3ee', '#8b5cf6'], ['#f472b6', '#fbbf24'], ['#34d399', '#22d3ee'], ['#fb7185', '#a78bfa'], ['#60a5fa', '#34d399'], ['#fbbf24', '#f97316'], ['#a3e635', '#2dd4bf'], ['#c084fc', '#f472b6']];
@@ -56,4 +52,18 @@ ill('atom', `<ellipse cx="100" cy="80" rx="64" ry="24" fill="none" stroke="GRAD"
 ill('trophy', `<path d="M70 28h60v36a30 30 0 01-60 0z" fill="GRAD"/><path d="M70 36H48v10a22 22 0 0022 22M130 36h22v10a22 22 0 01-22 22" fill="none" stroke="#fbbf24" stroke-width="6"/><rect x="92" y="94" width="16" height="22" fill="#fbbf24"/><rect x="72" y="116" width="56" height="12" rx="4" fill="#f472b6"/>`);
 ill('planet', `<circle cx="100" cy="80" r="40" fill="GRAD"/><ellipse cx="100" cy="86" rx="72" ry="14" fill="none" stroke="#fbbf24" stroke-width="5" transform="rotate(-18 100 86)"/><circle cx="84" cy="66" r="8" fill="#fff" opacity=".25"/><circle cx="30" cy="30" r="3" fill="#fff"/><circle cx="170" cy="40" r="2" fill="#fff"/>`);
 ill('brain', `<path d="M78 40a22 22 0 00-30 20 20 20 0 000 34 22 22 0 0030 22 22 22 0 0044 0 22 22 0 0030-22 20 20 0 000-34 22 22 0 00-30-20 22 22 0 00-44 0z" fill="GRAD" opacity=".9"/><path d="M100 28v100M76 62c10 0 14 8 24 8M124 62c-10 0-14 8-24 8M76 100c10 0 14-8 24-8M124 100c-10 0-14-8-24-8" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/>`);
+/* ---------- cosmos: star tiles + nebula + galaxy ---------- */
+for (const [name, n, rmax] of [['a', 70, 1.1], ['b', 40, 1.6], ['c', 14, 2.2]]) {
+  let s = '';
+  for (let i = 0; i < n; i++) { const r = (0.4 + rnd() * rmax).toFixed(2), c = pick(['#ffffff', '#cfe8ff', '#e6d4ff', '#a5f3fc', '#fde68a']); s += `<circle cx="${(rnd() * 600).toFixed(0)}" cy="${(rnd() * 600).toFixed(0)}" r="${r}" fill="${c}" opacity="${(0.35 + rnd() * 0.65).toFixed(2)}"/>`; if (name === 'c' && rnd() > 0.5) s += `<circle cx="${(rnd() * 600).toFixed(0)}" cy="${(rnd() * 600).toFixed(0)}" r="6" fill="#fff" opacity=".08"/>`; }
+  out(`bg/stars-${name}.svg`, `<svg ${NS} width="600" height="600" viewBox="0 0 600 600">${s}</svg>`);
+}
+out('bg/nebula.svg', `<svg ${NS} viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><defs>
+<radialGradient id="n1" cx=".2" cy=".15" r=".55"><stop offset="0" stop-color="#7c3aed" stop-opacity=".55"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+<radialGradient id="n2" cx=".85" cy=".25" r=".5"><stop offset="0" stop-color="#0ea5e9" stop-opacity=".42"/><stop offset="1" stop-color="#0ea5e9" stop-opacity="0"/></radialGradient>
+<radialGradient id="n3" cx=".6" cy=".95" r=".6"><stop offset="0" stop-color="#db2777" stop-opacity=".35"/><stop offset="1" stop-color="#db2777" stop-opacity="0"/></radialGradient>
+<radialGradient id="n4" cx=".1" cy=".85" r=".4"><stop offset="0" stop-color="#14b8a6" stop-opacity=".25"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="1000" fill="#02030c"/><rect width="1600" height="1000" fill="url(#n1)"/><rect width="1600" height="1000" fill="url(#n2)"/><rect width="1600" height="1000" fill="url(#n3)"/><rect width="1600" height="1000" fill="url(#n4)"/>
+<g opacity=".5" fill="none" stroke="#a78bfa" stroke-opacity=".25"><ellipse cx="1320" cy="760" rx="420" ry="120" transform="rotate(-24 1320 760)"/><ellipse cx="1320" cy="760" rx="300" ry="86" transform="rotate(-24 1320 760)"/></g>
+<circle cx="1320" cy="760" r="60" fill="#a78bfa" opacity=".07"/></svg>`);
 console.log('PROJUKTI assets generated.');

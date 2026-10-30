@@ -40,7 +40,7 @@
   });
   P.defaults = () => ({
     v: 1,
-    profile: { name: '', school: '', grade: 'Class 8', goal: '', avatar: 1, theme: 'dark', accent: '#22d3ee', accent2: '#8b5cf6', onboarded: false },
+    profile: { name: '', school: '', grade: 'Class 8', goal: '', avatar: 1, photo: '', theme: 'dark', accent: '#7dd3fc', accent2: '#a78bfa', onboarded: false },
     settings: { focus: 25, short: 5, long: 15, cycles: 4, dailyGoal: 120, notify: false, sound: true, autoBreak: true, reminder: '17:00' },
     exams: [{ id: 'final', name: 'Class 8 Final Exam', date: '' }, { id: 'scholarship', name: 'Junior Scholarship 2026', date: '' }],
     subjects: [
@@ -50,7 +50,7 @@
     sessions: [], tasks: [], templates: [], notes: [], cards: [], formulas: [], links: [], reading: [], refs: [],
     timetable: [], explorer: [], questions: [], mocks: [], errors: [],
     habits: ['Revise yesterday\'s work', 'Practise questions', 'Read the textbook 20 min', 'Screen-free break'].map(n => ({ id: P.uid(), name: n })),
-    hlog: {}, well: {}, ledger: {}, ach: {}, timer: null, ui: {}
+    hlog: {}, well: {}, ledger: {}, medals: [], timer: null, ui: {}
   });
   P.load = () => {
     let s = null;
@@ -65,7 +65,7 @@
     } else P.S = d;
   };
   P.save = () => {
-    try { localStorage.setItem(KEY, JSON.stringify(P.S)); P.saveFail = false; }
+    try { P.S._t = P.S._t || 0; localStorage.setItem(KEY, JSON.stringify(P.S)); P.saveFail = false; if (P.cloudSchedule) P.cloudSchedule(); }
     catch (e) { if (!P.saveFail) P.toast('Could not save — storage is full or blocked. Export your data now.', 'warn'); P.saveFail = true; }
   };
   P.exportData = () => {
@@ -131,7 +131,8 @@
     if (give > 0) P.toast('+' + give + ' XP · ' + label, 'xp');
     return give > 0;
   };
-  P.totalXP = () => Object.values(P.S.ledger).reduce((a, e) => a + e.xp, 0);
+  P.localXP = () => Object.values(P.S.ledger).reduce((a, e) => a + e.xp, 0);
+  P.totalXP = () => P.localXP() + ((P.cloud && P.cloud.otherXP) || 0);   // + XP earned in OLC on the same account
   P.level = (xp = P.totalXP()) => {
     let lv = 1, need = 100;
     while (xp >= need) { xp -= need; lv++; need = Math.round(need * 1.25); }
@@ -160,46 +161,6 @@
     return { cur: set.size ? cur : 0, best: Math.max(best, cur), active: set };
   };
 
-  /* ---------- achievements ---------- */
-  P.achTests = {
-    'first-step': () => P.S.sessions.length >= 1,
-    'hour-1': () => P.S.sessions.reduce((a, x) => a + x.mins, 0) >= 60,
-    'hours-10': () => P.S.sessions.reduce((a, x) => a + x.mins, 0) >= 600,
-    'hours-50': () => P.S.sessions.reduce((a, x) => a + x.mins, 0) >= 3000,
-    'streak-3': () => P.streak().best >= 3, 'streak-7': () => P.streak().best >= 7,
-    'streak-14': () => P.streak().best >= 14, 'streak-30': () => P.streak().best >= 30,
-    'deep-focus': () => P.S.sessions.some(x => x.mins >= 25 && x.focus >= 5),
-    'tasks-10': () => P.S.tasks.filter(t => t.done).length >= 10,
-    'tasks-50': () => P.S.tasks.filter(t => t.done).length >= 50,
-    'topics-5': () => P.topics().filter(x => P.covered(x.t)).length >= 5,
-    'topics-25': () => P.topics().filter(x => P.covered(x.t)).length >= 25,
-    'mastery-5': () => P.topics().filter(x => x.t.mastery >= 4).length >= 5,
-    'revisor-10': () => Object.keys(P.S.ledger).filter(k => k.startsWith('rev:')).length >= 10,
-    'recall-50': () => Object.keys(P.S.ledger).filter(k => k.startsWith('fc:')).length >= 50,
-    'mock-1': () => P.S.mocks.length >= 1,
-    'mock-80': () => P.S.mocks.some(m => m.total && m.score / m.total >= 0.8),
-    'fixer-5': () => P.S.errors.filter(e => e.resolved).length >= 5,
-    'rest-3': () => Object.values(P.S.well).filter(w => w.sleep >= 8).length >= 3,
-    'reflect-7': () => Object.values(P.S.well).filter(w => (w.reflection || '').length >= 20).length >= 7,
-    'curious-3': () => P.S.explorer.filter(q => q.status === 'resolved').length >= 3,
-    'all-subjects': () => {
-      const t = P.today(), from = P.addDays(t, -6);
-      return P.S.subjects.length > 0 && P.S.subjects.every(s => P.minsRange(from, t, s.id) > 0);
-    },
-    'level-5': () => P.level().lv >= 5
-  };
-  P.checkAch = () => {
-    let fresh = false;
-    P.ACH.forEach(a => {
-      if (!P.S.ach[a.id] && P.achTests[a.id] && P.achTests[a.id]()) {
-        P.S.ach[a.id] = Date.now(); fresh = true;
-        P.toast('Badge unlocked: ' + a.name, 'badge');
-        P.S.ledger['ach:' + a.id] = { xp: 25, label: 'Badge: ' + a.name, ts: Date.now(), day: P.today(), grp: '', act: false };
-      }
-    });
-    return fresh;
-  };
-
   /* ---------- recurring tasks ---------- */
   P.ensureRecurring = () => {
     const S = P.S, t = P.today(); let n = 0;
@@ -218,6 +179,28 @@
     });
     return n;
   };
+
+  /* ---------- images (profile photo, medal art) ---------- */
+  P.imgToData = (file, max, jpeg, cb) => {
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { P.toast('Please choose an image file.', 'warn'); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        let out = jpeg ? c.toDataURL('image/jpeg', 0.85) : c.toDataURL('image/webp', 0.88);
+        if (!jpeg && !out.startsWith('data:image/webp')) out = c.toDataURL('image/png');
+        cb(out);
+      };
+      im.onerror = () => P.toast('Could not read that image.', 'warn');
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  };
+  P.avatar = () => P.S.profile.photo || 'assets/avatars/av' + (P.S.profile.avatar || 1) + '.svg';
 
   /* ---------- theme ---------- */
   P.applyTheme = () => {
@@ -253,7 +236,7 @@
       let inp;
       if (f.type === 'select') inp = `<select id="${id}" name="${f.k}" ${req}>${(f.opts || []).map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
       else if (f.type === 'textarea') inp = `<textarea id="${id}" name="${f.k}" rows="${f.rows || 4}" placeholder="${esc(f.ph || '')}" ${req}>${esc(v)}</textarea>`;
-      else inp = `<input id="${id}" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.min != null ? `min="${f.min}"` : ''} ${f.max != null ? `max="${f.max}"` : ''} ${f.step ? `step="${f.step}"` : ''} placeholder="${esc(f.ph || '')}" ${req} ${f.list ? `list="dl_${f.k}"` : ''} autocomplete="off">` +
+      else inp = `<input id="${id}" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.min != null ? `min="${f.min}"` : ''} ${f.max != null ? `max="${f.max}"` : ''} ${f.step ? `step="${f.step}"` : ''} placeholder="${esc(f.ph || '')}" ${req} ${f.list ? `list="dl_${f.k}"` : ''} ${f.maxlen ? `maxlength="${f.maxlen}"` : ''} autocomplete="${f.ac || 'off'}">` +
         (f.list ? `<datalist id="dl_${f.k}">${f.list.map(x => `<option value="${esc(x)}">`).join('')}</datalist>` : '');
       return `<div class="fld ${f.half ? 'half' : ''}"><label for="${id}">${esc(f.label)}</label>${inp}${f.hint ? `<small>${esc(f.hint)}</small>` : ''}</div>`;
     };

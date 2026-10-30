@@ -58,39 +58,6 @@
   P.icon = (n, s = 20) =>
     `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${P.I[n] || ''}"/></svg>`;
 
-  /* id, name, description, icon, [colour A, colour B] */
-  P.ACH = [
-    { id: 'first-step', name: 'First Step', desc: 'Log your first study session.', icon: 'rocket', c: ['#22d3ee', '#0ea5e9'] },
-    { id: 'hour-1', name: 'Warm-up', desc: 'Study 1 hour in total.', icon: 'timer', c: ['#34d399', '#059669'] },
-    { id: 'hours-10', name: 'Ten Hour Club', desc: 'Study 10 hours in total.', icon: 'bolt', c: ['#fbbf24', '#f59e0b'] },
-    { id: 'hours-50', name: 'Fifty Hour Mission', desc: 'Study 50 hours in total.', icon: 'shield', c: ['#a78bfa', '#7c3aed'] },
-    { id: 'streak-3', name: 'Three-Day Rhythm', desc: 'Be active 3 days in a row.', icon: 'flame', c: ['#fb923c', '#ea580c'] },
-    { id: 'streak-7', name: 'Week Warrior', desc: 'Be active 7 days in a row.', icon: 'flame', c: ['#f472b6', '#db2777'] },
-    { id: 'streak-14', name: 'Fortnight Focus', desc: 'Be active 14 days in a row.', icon: 'flame', c: ['#f87171', '#dc2626'] },
-    { id: 'streak-30', name: 'Unstoppable', desc: 'Be active 30 days in a row.', icon: 'trophy', c: ['#fde047', '#ca8a04'] },
-    { id: 'deep-focus', name: 'Deep Focus', desc: 'Complete a 25+ minute session rated 5 for focus.', icon: 'target', c: ['#22d3ee', '#6366f1'] },
-    { id: 'tasks-10', name: 'Task Crusher', desc: 'Complete 10 tasks.', icon: 'check', c: ['#4ade80', '#16a34a'] },
-    { id: 'tasks-50', name: 'Mission Control', desc: 'Complete 50 tasks.', icon: 'flag', c: ['#38bdf8', '#0284c7'] },
-    { id: 'topics-5', name: 'Explorer', desc: 'Cover 5 syllabus topics.', icon: 'compass', c: ['#2dd4bf', '#0d9488'] },
-    { id: 'topics-25', name: 'Syllabus Climber', desc: 'Cover 25 syllabus topics.', icon: 'book', c: ['#60a5fa', '#2563eb'] },
-    { id: 'mastery-5', name: 'Mastermind', desc: 'Reach Mastered level on 5 topics.', icon: 'brain', c: ['#c084fc', '#9333ea'] },
-    { id: 'revisor-10', name: 'Revision Ranger', desc: 'Complete 10 topic revisions.', icon: 'reset', c: ['#f9a8d4', '#be185d'] },
-    { id: 'recall-50', name: 'Active Recaller', desc: 'Review 50 flashcards.', icon: 'cards', c: ['#a3e635', '#65a30d'] },
-    { id: 'mock-1', name: 'Test Pilot', desc: 'Record your first mock test.', icon: 'file', c: ['#67e8f9', '#0891b2'] },
-    { id: 'mock-80', name: 'Ace', desc: 'Score 80%+ in a mock test.', icon: 'star', c: ['#fcd34d', '#d97706'] },
-    { id: 'fixer-5', name: 'Mistake Fixer', desc: 'Resolve 5 entries in your error log.', icon: 'shield', c: ['#fb7185', '#e11d48'] },
-    { id: 'rest-3', name: 'Well Rested', desc: 'Log 8+ hours of sleep on 3 days.', icon: 'moon', c: ['#818cf8', '#4338ca'] },
-    { id: 'reflect-7', name: 'Reflective Mind', desc: 'Write 7 daily reflections.', icon: 'pen', c: ['#f0abfc', '#a21caf'] },
-    { id: 'curious-3', name: 'Curious Mind', desc: 'Resolve 3 Explorer questions.', icon: 'globe', c: ['#5eead4', '#0f766e'] },
-    { id: 'all-subjects', name: 'All-Rounder', desc: 'Study every subject within one week.', icon: 'medal', c: ['#fdba74', '#c2410c'] },
-    { id: 'level-5', name: 'Level 5', desc: 'Reach level 5.', icon: 'trophy', c: ['#e879f9', '#7e22ce'] }
-  ];
-
-  P.badgeSVG = (a, locked, size = 96) => {
-    const g = 'bg_' + a.id + (locked ? '_l' : '');
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${a.name}"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${locked ? '#475569' : a.c[0]}"/><stop offset="1" stop-color="${locked ? '#1e293b' : a.c[1]}"/></linearGradient></defs><path d="M48 4l38 22v44L48 92 10 70V26z" fill="url(#${g})" stroke="rgba(255,255,255,.4)" stroke-width="2"/><path d="M48 12l31 18v36L48 84 17 66V30z" fill="none" stroke="rgba(255,255,255,.25)"/><g transform="translate(30 30) scale(1.5)" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="${locked ? 0.4 : 1}"><path d="${P.I[a.icon]}"/></g></svg>`;
-  };
-
   P.QUOTES = [
     'Small, honest effort every day beats a heroic effort once a month.',
     'Understand first. Memorise second. Practise always.',

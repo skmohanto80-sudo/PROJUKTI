@@ -49,17 +49,62 @@
     P.showReport(d.r === 'day' ? 'Daily report' : d.r === 'week' ? 'Weekly report' : 'Monthly report', P.reportHTML(from, td, d.r === 'day' ? 'Daily progress report' : d.r === 'week' ? 'Weekly progress report' : 'Monthly progress report'));
   };
 
-  /* ---------- Achievements ---------- */
+  /* ---------- Achievements: XP + custom medals / badges / ribbons (added by you) ---------- */
+  const KIND = { medal: ['Medal', '🏅'], badge: ['Badge', '🛡️'], ribbon: ['Ribbon', '🎗️'] };
+  const medalArt = m => m.img ? `<img src="${m.img}" alt="" class="mimg">` : `<div class="mimg ph">${KIND[m.kind || 'medal'][1]}</div>`;
+
   P.views.awards = {
     render() {
-      const S = P.S, lv = P.level(), st = P.streak(), xp = P.totalXP(), got = P.ACH.filter(a => S.ach[a.id]).length;
+      const S = P.S, lv = P.level(), st = P.streak(), xp = P.totalXP(), k = S.ui.mkind || '';
       const led = Object.values(S.ledger).filter(e => e.xp > 0).sort((a, b) => b.ts - a.ts).slice(0, 14);
-      const nextStreak = [3, 7, 14, 30].find(n => n > st.cur);
-      return `<header class="vh"><div><h1>Achievements</h1><small class="muted">XP rewards genuine work only — every activity pays out once, and daily caps protect against over-studying.</small></div></header>
-      <section class="grid g2w"><div class="card glass levelcard"><div class="lvl"><b>${lv.lv}</b><small>LEVEL</small></div><div class="grow"><h2>${xp} XP total</h2>${P.bar(lv.pct, 'var(--acc2)')}<small class="muted">${lv.need - lv.cur} XP to level ${lv.lv + 1}</small>
-        <div class="kv"><span>Badges</span><b>${got}/${P.ACH.length}</b></div><div class="kv"><span>Current streak</span><b>${st.cur} days</b></div>${nextStreak ? `<small class="muted">Next streak milestone: ${nextStreak} days (${nextStreak - st.cur} to go)</small>` : ''}</div></div>
+      const nextStreak = [3, 7, 14, 30, 60, 100].find(n => n > st.cur);
+      const ms = S.medals.filter(m => !k || (m.kind || 'medal') === k).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const other = (P.cloud && P.cloud.otherXP) || 0;
+      return `<header class="vh"><div><h1>Achievements</h1><small class="muted">XP rewards genuine work only — each activity pays once, with daily caps. Medals, badges and ribbons are added by you.</small></div><div class="vh-r"><button class="btn primary" data-a="addMedal">${P.icon('plus', 16)} Add medal / badge</button></div></header>
+      <section class="grid g2w"><div class="card glass levelcard"><div class="lvl"><b>${lv.lv}</b><small>LEVEL</small></div><div class="grow"><h2>${xp} XP total</h2>${P.bar(lv.pct, 'var(--acc2)')}<small class="muted">${lv.need - lv.cur} XP to level ${lv.lv + 1}${other ? ' · includes ' + other + ' XP earned in OLC' : ''}</small>
+        <div class="kv"><span>Medals · badges · ribbons</span><b>${S.medals.length}</b></div><div class="kv"><span>Current streak</span><b>${st.cur} days</b></div>${nextStreak ? `<small class="muted">Next streak milestone: ${nextStreak} days (${nextStreak - st.cur} to go)</small>` : ''}</div></div>
         <div class="card glass"><div class="ch"><h2>Recent XP</h2></div><div class="list">${led.map(e => `<div class="row"><div class="grow"><b>${esc(e.label)}</b><small class="muted">${P.fmtDate(e.day)}</small></div><b class="ok">+${e.xp}</b></div>`).join('') || '<div class="empty small">Complete tasks, sessions and revisions to earn XP.</div>'}</div></div></section>
-      <section class="card glass"><div class="ch"><h2>${P.icon('medal', 18)} Badge gallery</h2></div><div class="badges">${P.ACH.map(a => { const u = S.ach[a.id]; return `<div class="badge ${u ? '' : 'locked'}" title="${esc(a.desc)}">${P.badgeSVG(a, !u, 84)}<b>${esc(a.name)}</b><small class="muted">${u ? 'Unlocked ' + P.fmtDate(P.today(new Date(u))) : esc(a.desc)}</small></div>`; }).join('')}</div></section>`;
+      <section class="card glass"><div class="ch"><h2>${P.icon('medal', 18)} Medal gallery</h2><div class="seg" style="margin:0"><button class="${!k ? 'on' : ''}" data-a="mkind" data-v="">All</button>${Object.entries(KIND).map(([id, v]) => `<button class="${k === id ? 'on' : ''}" data-a="mkind" data-v="${id}">${v[0]}s</button>`).join('')}</div></div>
+        ${ms.length ? `<div class="badges">${ms.map(m => `<button class="badge medal" data-a="viewMedal" data-id="${m.id}" style="--rb:${m.ribbon || '#a78bfa'}">${m.ribbon ? '<i class="rib"></i>' : ''}${medalArt(m)}<b>${esc(m.name)}</b><small class="muted">${KIND[m.kind || 'medal'][0]}${m.date ? ' · ' + P.fmtDate(m.date, { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</small></button>`).join('')}</div>` :
+        `<div class="empty"><img src="assets/illustrations/trophy.svg" alt="" width="130"><p>Your gallery is empty. Add the medals, badges and ribbons you have earned — with their picture, ribbon colour and the story of how you won them.</p><button class="btn primary" data-a="addMedal">${P.icon('plus', 16)} Add the first one</button></div>`}</section>`;
     }
+  };
+  P.act.mkind = d => { P.S.ui.mkind = d.v; P.render(); };
+
+  const mFields2 = () => [
+    { k: 'name', label: 'Name', req: true, ph: 'e.g. Gold Star — Maths Champion' },
+    { k: 'kind', label: 'Type', type: 'select', opts: Object.entries(KIND).map(([k, v]) => [k, v[0]]), half: true },
+    { k: 'date', label: 'Date earned', type: 'date', half: true },
+    { k: 'ribbon', label: 'Ribbon colour', type: 'color', half: true },
+    { k: 'xp', label: 'XP bonus (given once)', type: 'number', min: 0, max: 1000, half: true },
+    { k: 'purpose', label: 'Purpose / meaning', type: 'textarea', rows: 2 },
+    { k: 'how', label: 'How it was earned', type: 'textarea', rows: 2 },
+    { k: 'why', label: 'Why it was earned', type: 'textarea', rows: 2 }
+  ];
+  const medalForm = (m, isNew) => {
+    let img = m.img || '';
+    const dlg = P.form({
+      title: isNew ? 'Add medal / badge / ribbon' : 'Edit medal', wide: true, fields: mFields2(), values: { kind: 'medal', ribbon: '#a78bfa', xp: 0, date: P.today(), ...m },
+      extra: isNew ? null : { label: 'Delete', onClick: () => P.confirm('Delete this medal?', () => { P.S.medals = P.S.medals.filter(x => x.id !== m.id); P.render(); }) },
+      onSubmit: v => {
+        const o = { ...m, ...v, img, xp: +v.xp || 0 }; if (isNew) { o.id = P.uid(); P.S.medals.push(o); } else Object.assign(m, o);
+        if (o.xp > 0) P.award('medal:' + o.id, o.xp, 'Medal: ' + o.name.slice(0, 24));
+        P.render();
+      }
+    });
+    const f = dlg.querySelector('.fields');
+    f.insertAdjacentHTML('afterbegin', `<div class="fld"><label>Image (medal / badge / ribbon picture)</label><div class="imgpick"><div class="mimg ph" id="mprev">${img ? `<img src="${img}" class="mimg" alt="">` : '🖼️'}</div><label class="btn small">${P.icon('upload', 14)} Choose image<input type="file" accept="image/*" id="mfile" hidden></label></div></div>`);
+    dlg.querySelector('#mfile').addEventListener('change', e => {
+      P.imgToData(e.target.files[0], 256, false, d => { img = d; dlg.querySelector('#mprev').innerHTML = `<img src="${d}" class="mimg" alt="">`; });
+    });
+  };
+  P.act.addMedal = () => medalForm({}, true);
+  P.act.viewMedal = d => {
+    const m = P.S.medals.find(x => x.id === d.id); if (!m) return;
+    const dlg = P.modal(`<div class="mform"><header><h3>${esc(m.name)}</h3><button class="icon-btn" data-close aria-label="Close">${P.icon('x')}</button></header><div class="medalview" style="--rb:${m.ribbon || '#a78bfa'}">${m.ribbon ? '<i class="rib big"></i>' : ''}${medalArt(m)}</div>
+      <div class="pad"><div class="kv"><span>Type</span><b>${KIND[m.kind || 'medal'][0]}</b></div><div class="kv"><span>When</span><b>${m.date ? P.fmtDate(m.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</b></div>
+      <p><b>Purpose</b><br>${m.purpose ? P.nl(m.purpose) : '<span class="muted">—</span>'}</p><p><b>How it was earned</b><br>${m.how ? P.nl(m.how) : '<span class="muted">—</span>'}</p><p><b>Why it was earned</b><br>${m.why ? P.nl(m.why) : '<span class="muted">—</span>'}</p></div>
+      <footer><span class="grow"></span><button class="btn" data-edit>${P.icon('edit', 14)} Edit</button><button class="btn primary" data-close>Close</button></footer></div>`, '');
+    dlg.querySelector('[data-edit]').onclick = () => { dlg.close(); medalForm(m, false); };
   };
 })();

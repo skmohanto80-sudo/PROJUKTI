@@ -1,7 +1,7 @@
 /* Profile, settings and data */
 (function () {
   const P = window.P, esc = P.esc;
-  const PRESETS = [['Cyan / Violet', '#22d3ee', '#8b5cf6'], ['Emerald / Sky', '#34d399', '#38bdf8'], ['Amber / Rose', '#fbbf24', '#fb7185'], ['Pink / Indigo', '#f472b6', '#6366f1'], ['Lime / Teal', '#a3e635', '#2dd4bf']];
+  const PRESETS = [['Nebula', '#7dd3fc', '#a78bfa'], ['Aurora', '#34d399', '#38bdf8'], ['Supernova', '#fbbf24', '#fb7185'], ['Pulsar', '#f472b6', '#818cf8'], ['Quasar', '#a3e635', '#2dd4bf']];
 
   P.views.settings = {
     render() {
@@ -10,12 +10,15 @@
       return `<header class="vh"><div><h1>Settings</h1><small class="muted">Profile, exams, subjects, timer, theme and data.</small></div></header>
       <section class="grid g2">
         <div class="card glass"><div class="ch"><h2>${P.icon('smile', 18)} Student profile</h2></div>
+          <div class="photorow"><img class="photo" src="${P.avatar()}" alt="Profile picture" width="84" height="84"><div><label class="btn small">${P.icon('upload', 14)} Upload photo<input type="file" accept="image/*" data-c="photo" hidden></label> ${p.photo ? `<button class="btn small ghost danger" data-a="rmPhoto">Remove</button>` : ''}<br><small class="muted">Square photos look best. Resized on your device and synced to your account.</small></div></div>
+          <small class="muted">Or pick an avatar:</small>
           <div class="avatars" role="radiogroup" aria-label="Avatar">${[1, 2, 3, 4, 5, 6, 7, 8].map(i => `<button class="av ${p.avatar === i ? 'on' : ''}" data-a="setAvatar" data-n="${i}" role="radio" aria-checked="${p.avatar === i}" aria-label="Avatar ${i}"><img src="assets/avatars/av${i}.svg" alt="" width="46" height="46"></button>`).join('')}</div>
           ${[['name', 'Name'], ['school', 'School'], ['grade', 'Class / grade'], ['goal', 'My academic goal']].map(([k, l]) => `<div class="fld"><label for="p_${k}">${l}</label><input id="p_${k}" value="${esc(p[k])}" data-c="prof" data-k="${k}" ${k === 'goal' ? 'placeholder="e.g. GPA 5 in the final and a Junior Scholarship"' : ''}></div>`).join('')}</div>
         <div class="card glass"><div class="ch"><h2>${P.icon('target', 18)} Exams</h2></div>
           ${S.exams.map(e => `<div class="grid g2 tight"><div class="fld"><label for="en_${e.id}">Name</label><input id="en_${e.id}" value="${esc(e.name)}" data-c="exname" data-id="${e.id}"></div><div class="fld"><label for="ed_${e.id}">Date</label><input id="ed_${e.id}" type="date" value="${e.date}" data-c="exdate" data-id="${e.id}"></div></div>`).join('')}
           <div class="fld"><label for="gl">Daily study goal (minutes)</label><input id="gl" type="number" min="20" max="360" value="${set.dailyGoal}" data-c="goalnum"><small>Realistic beats heroic — rest is part of the plan.</small></div></div>
       </section>
+      ${P.cloudCard()}
       <section class="card glass"><div class="ch"><h2>${P.icon('book', 18)} Subjects</h2><button class="btn small" data-a="addSubject">${P.icon('plus', 14)} Add subject</button></div>
         <div class="list">${S.subjects.map(s => `<div class="row"><input type="color" value="${s.color}" data-c="subcol" data-id="${s.id}" aria-label="Colour for ${esc(s.name)}"><input class="grow" value="${esc(s.name)}" data-c="subname" data-id="${s.id}" aria-label="Subject name"><small class="muted">${P.subjectStats(s).total} topics</small><button class="icon-btn" data-a="delSubject" data-id="${s.id}" aria-label="Delete subject">${P.icon('trash', 15)}</button></div>`).join('')}</div></section>
       <section class="grid g2">
@@ -37,7 +40,9 @@
     }
   };
 
-  P.act.setAvatar = d => { P.S.profile.avatar = +d.n; P.render(); };
+  P.act.setAvatar = d => { P.S.profile.avatar = +d.n; P.S.profile.photo = ''; P.render(); };
+  P.chg.photo = (v, el) => { P.imgToData(el.files[0], 256, true, d => { P.S.profile.photo = d; P.toast('Profile picture updated'); if (P.cloudAvatar) P.cloudAvatar(d); P.render(); }); el.value = ''; };
+  P.act.rmPhoto = () => { P.S.profile.photo = ''; P.render(); };
   P.chg.prof = (v, el, d) => { P.S.profile[d.k] = v.trim(); P.render(); };
   P.chg.exname = (v, el, d) => { if (v.trim()) P.S.exams.find(e => e.id === d.id).name = v.trim(); P.render(); };
   P.chg.exdate = (v, el, d) => { P.S.exams.find(e => e.id === d.id).date = v; P.render(); };

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><defs>
+<radialGradient id="n1" cx=".2" cy=".15" r=".55"><stop offset="0" stop-color="#7c3aed" stop-opacity=".55"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+<radialGradient id="n2" cx=".85" cy=".25" r=".5"><stop offset="0" stop-color="#0ea5e9" stop-opacity=".42"/><stop offset="1" stop-color="#0ea5e9" stop-opacity="0"/></radialGradient>
+<radialGradient id="n3" cx=".6" cy=".95" r=".6"><stop offset="0" stop-color="#db2777" stop-opacity=".35"/><stop offset="1" stop-color="#db2777" stop-opacity="0"/></radialGradient>
+<radialGradient id="n4" cx=".1" cy=".85" r=".4"><stop offset="0" stop-color="#14b8a6" stop-opacity=".25"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="1000" fill="#02030c"/><rect width="1600" height="1000" fill="url(#n1)"/><rect width="1600" height="1000" fill="url(#n2)"/><rect width="1600" height="1000" fill="url(#n3)"/><rect width="1600" height="1000" fill="url(#n4)"/>
+<g opacity=".5" fill="none" stroke="#a78bfa" stroke-opacity=".25"><ellipse cx="1320" cy="760" rx="420" ry="120" transform="rotate(-24 1320 760)"/><ellipse cx="1320" cy="760" rx="300" ry="86" transform="rotate(-24 1320 760)"/></g>
+<circle cx="1320" cy="760" r="60" fill="#a78bfa" opacity=".07"/></svg>
