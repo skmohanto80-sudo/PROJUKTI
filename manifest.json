@@ -1,0 +1,14 @@
+{
+  "name": "PROJUKTI — Study Command Center",
+  "short_name": "PROJUKTI",
+  "description": "Study tracking for Class 8 finals and the Junior Scholarship Examination 2026.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050a18",
+  "theme_color": "#050a18",
+  "icons": [
+    { "src": "assets/logo/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/logo/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/logo/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
